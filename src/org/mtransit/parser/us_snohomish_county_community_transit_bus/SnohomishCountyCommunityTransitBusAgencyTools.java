@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
@@ -295,6 +296,9 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 		return false;
 	}
 
+	private static final Pattern TO = Pattern.compile("((^|\\W){1}(to)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final Pattern VIA = Pattern.compile("((^|\\W){1}(via)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+
 	private static final String COMMUNITY_COLLEGE_SHORT = "CC";
 	private static final Pattern COMMUNITY_COLLEGE = Pattern.compile("((^|\\W){1}(community college)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
 	private static final String COMMUNITY_COLLEGE_REPLACEMENT = "$2" + COMMUNITY_COLLEGE_SHORT + "$4";
@@ -317,6 +321,16 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 
 	@Override
 	public String cleanTripHeadsign(String tripHeadsign) {
+		Matcher matcherTO = TO.matcher(tripHeadsign);
+		if (matcherTO.find()) {
+			String gTripHeadsignAfterTO = tripHeadsign.substring(matcherTO.end());
+			tripHeadsign = gTripHeadsignAfterTO;
+		}
+		Matcher matcherVIA = VIA.matcher(tripHeadsign);
+		if (matcherVIA.find()) {
+			String gTripHeadsignBeforeVIA = tripHeadsign.substring(0, matcherVIA.start());
+			tripHeadsign = gTripHeadsignBeforeVIA;
+		}
 		tripHeadsign = CleanUtils.cleanSlashes(tripHeadsign);
 		tripHeadsign = COMMUNITY_COLLEGE.matcher(tripHeadsign).replaceAll(COMMUNITY_COLLEGE_REPLACEMENT);
 		tripHeadsign = EVERETT_EVERETT_BOEING.matcher(tripHeadsign).replaceAll(EVERETT_EVERETT_BOEING_REPLACEMENT);
@@ -334,6 +348,8 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 	@Override
 	public String cleanStopName(String gStopName) {
 		gStopName = CleanUtils.SAINT.matcher(gStopName).replaceAll(CleanUtils.SAINT_REPLACEMENT);
+		gStopName = CleanUtils.CLEAN_AND.matcher(gStopName).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
+		gStopName = CleanUtils.CLEAN_AT.matcher(gStopName).replaceAll(CleanUtils.CLEAN_AT_REPLACEMENT);
 		gStopName = CleanUtils.cleanSlashes(gStopName);
 		gStopName = CleanUtils.removePoints(gStopName);
 		gStopName = CleanUtils.cleanStreetTypes(gStopName);
