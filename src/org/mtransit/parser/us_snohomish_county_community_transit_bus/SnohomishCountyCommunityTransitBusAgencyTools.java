@@ -200,11 +200,14 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 	private static final String SLASH = " / ";
 	private static final String AND = " & ";
 	private static final String PARK_AND_RIDE_SHORT = "P&R";
+	private static final String TRANSIT_CENTER_SHORT = "TC";
 	//
+	private static final String AURORA_VILLAGE_TRANSIT_CENTER = "Aurora Vlg " + TRANSIT_CENTER_SHORT;
 	private static final String CANYON_PARK_PARK_AND_RIDE = "Canyon Pk " + PARK_AND_RIDE_SHORT;
 	private static final String DARRINGTON = "Darrington";
 	private static final String EVERETT = "Everett";
 	private static final String EVERETT_BOEING = EVERETT + " Boeing";
+	private static final String EVERETT_STATION = EVERETT + " Sta";
 	private static final String GOLD_BAR = "Gold Bar";
 	private static final String GRANITE_FALLS = "Granite Falls";
 	private static final String LAKE_STEVENS = "Lk Stevens";
@@ -268,6 +271,14 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 				mTrip.setHeadsignString(LYNNWOOD + AND + EVERETT, mTrip.getHeadsignId());
 				return true;
 			}
+		} else if (mTrip.getRouteId() == 701l) { // SWIFT
+			if (mTrip.getHeadsignId() == 0) {
+				mTrip.setHeadsignString(AURORA_VILLAGE_TRANSIT_CENTER, mTrip.getHeadsignId());
+				return true;
+			} else if (mTrip.getHeadsignId() == 1) {
+				mTrip.setHeadsignString(EVERETT_STATION, mTrip.getHeadsignId());
+				return true;
+			}
 		} else if (mTrip.getRouteId() == 810l) {
 			if (mTrip.getHeadsignId() == 1) {
 				mTrip.setHeadsignString(MC_COLLUM_PARK_PARK_AND_RIDE, mTrip.getHeadsignId());
@@ -297,7 +308,6 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 	private static final Pattern SWIFT_STATION = Pattern.compile("((^|\\W){1}(swift station|swift sta)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
 	private static final String SWIFT_STATION_REPLACEMENT = "$2" + "Sta" + "$4";
 
-	private static final String TRANSIT_CENTER_SHORT = "TC";
 	private static final Pattern TRANSIT_CENTER = Pattern.compile("((^|\\W){1}(transit center|transit|centre)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
 	private static final String TRANSIT_CENTER_REPLACEMENT = "$2" + TRANSIT_CENTER_SHORT + "$4";
 
