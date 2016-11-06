@@ -104,6 +104,7 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 			case 101: return LOCAL_ROUTES_COLOR;
 			case 105: return LOCAL_ROUTES_COLOR;
 			case 106: return LOCAL_ROUTES_COLOR;
+			case 109: return LOCAL_ROUTES_COLOR;
 			case 111: return LOCAL_ROUTES_COLOR;
 			case 112: return LOCAL_ROUTES_COLOR;
 			case 113: return LOCAL_ROUTES_COLOR;
@@ -115,6 +116,7 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 			case 196: return LOCAL_ROUTES_COLOR;
 			case 201: return LOCAL_ROUTES_COLOR;
 			case 202: return LOCAL_ROUTES_COLOR;
+			case 209: return LOCAL_ROUTES_COLOR;
 			case 220: return LOCAL_ROUTES_COLOR;
 			case 222: return LOCAL_ROUTES_COLOR;
 			case 227: return LOCAL_ROUTES_COLOR;
