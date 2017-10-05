@@ -1,6 +1,7 @@
 package org.mtransit.parser.us_snohomish_county_community_transit_bus;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -77,6 +78,11 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 	}
 
 	@Override
+	public boolean excludeRoute(GRoute gRoute) {
+		return super.excludeRoute(gRoute);
+	}
+
+	@Override
 	public Integer getAgencyRouteType() {
 		return MAgency.ROUTE_TYPE_BUS;
 	}
@@ -97,7 +103,8 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 
 	@Override
 	public String getRouteColor(GRoute gRoute) {
-		if (StringUtils.isEmpty(gRoute.getRouteColor()) || DefaultAgencyTools.WHITE.equalsIgnoreCase(gRoute.getRouteColor())) {
+		if (StringUtils.isEmpty(gRoute.getRouteColor()) //
+				|| DefaultAgencyTools.WHITE.equalsIgnoreCase(gRoute.getRouteColor())) {
 			int rsn = Integer.parseInt(gRoute.getRouteId());
 			switch (rsn) {
 			// @formatter:off
@@ -155,6 +162,9 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 			case 880: return COMMUTER_ROUTES_COLOR;
 			// @formatter:on
 			}
+			if (isGoodEnoughAccepted()) {
+				return null;
+			}
 			System.out.printf("\nUnexpected route color %s!\n", gRoute);
 			System.exit(-1);
 			return null;
@@ -203,99 +213,109 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 	private static final String SLASH = " / ";
 	private static final String AND = " & ";
 	private static final String PARK_AND_RIDE_SHORT = "P&R";
+
+	private static final String MARINER_PARK_AND_RIDE = "Mariner " + PARK_AND_RIDE_SHORT;
 	private static final String TRANSIT_CENTER_SHORT = "TC";
-	//
-	private static final String AURORA_VILLAGE_TRANSIT_CENTER = "Aurora Vlg " + TRANSIT_CENTER_SHORT;
-	private static final String CANYON_PARK_PARK_AND_RIDE = "Canyon Pk " + PARK_AND_RIDE_SHORT;
+
+	private static final String AURORA_VILLAGE = "Aurora Vlg";
+	private static final String AURORA_VILLAGE_STATION = AURORA_VILLAGE + " Sta";
+	private static final String ARLINGTON = "Arlington";
+	private static final String BOEING = "Boeing";
 	private static final String DARRINGTON = "Darrington";
 	private static final String EVERETT = "Everett";
 	private static final String EVERETT_BOEING = EVERETT + " Boeing";
-	private static final String EVERETT_STATION = EVERETT + " Sta";
 	private static final String GOLD_BAR = "Gold Bar";
-	private static final String GRANITE_FALLS = "Granite Falls";
-	private static final String LAKE_STEVENS = "Lk Stevens";
+	private static final String HARDESON_ROAD = "Hardeson Rd";
 	private static final String LYNNWOOD = "Lynnwood";
 	private static final String MARYSVILLE = "Marysville";
 	private static final String MC_COLLUM_PARK = "McCollum Pk";
 	private static final String MC_COLLUM_PARK_PARK_AND_RIDE = MC_COLLUM_PARK + " " + PARK_AND_RIDE_SHORT;
 	private static final String MONROE = "Monroe";
-	private static final String MOUNTLAKE_TERRACE_PARK_AND_RIDE = "Mountlake Ter " + PARK_AND_RIDE_SHORT;
-	private static final String MUKILTEO = "Mukilteo";
 
 	@Override
 	public boolean mergeHeadsign(MTrip mTrip, MTrip mTripToMerge) {
-		if (mTrip.getRouteId() == 112l) {
-			if (mTrip.getHeadsignId() == 0) {
-				mTrip.setHeadsignString(MOUNTLAKE_TERRACE_PARK_AND_RIDE, mTrip.getHeadsignId());
+		List<String> headsignsValues = Arrays.asList(mTrip.getHeadsignValue(), mTripToMerge.getHeadsignValue());
+		if (mTrip.getRouteId() == 105L) {
+			if (Arrays.asList( //
+					MARINER_PARK_AND_RIDE, //
+					HARDESON_ROAD //
+					).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString(HARDESON_ROAD, mTrip.getHeadsignId());
 				return true;
 			}
-		} else if (mTrip.getRouteId() == 119l) {
-			if (mTrip.getHeadsignId() == 0) {
-				mTrip.setHeadsignString(MOUNTLAKE_TERRACE_PARK_AND_RIDE, mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 120l) {
-			if (mTrip.getHeadsignId() == 0) {
-				mTrip.setHeadsignString(CANYON_PARK_PARK_AND_RIDE, mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 230l) {
-			if (mTrip.getHeadsignId() == 0) {
+		} else if (mTrip.getRouteId() == 230L) {
+			if (Arrays.asList( //
+					ARLINGTON, //
+					DARRINGTON //
+					).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString(DARRINGTON, mTrip.getHeadsignId());
 				return true;
 			}
-		} else if (mTrip.getRouteId() == 271l) {
-			if (mTrip.getHeadsignId() == 0) {
-				mTrip.setHeadsignString(MONROE + SLASH + GOLD_BAR, mTrip.getHeadsignId());
+		} else if (mTrip.getRouteId() == 270L) {
+			if (Arrays.asList( //
+					BOEING, //
+					EVERETT //
+					).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString(EVERETT, mTrip.getHeadsignId());
 				return true;
 			}
-		} else if (mTrip.getRouteId() == 277l) {
-			if (mTrip.getHeadsignId() == 0) {
+		} else if (mTrip.getRouteId() == 271L) {
+			if (Arrays.asList( //
+					EVERETT + SLASH + BOEING, //
+					EVERETT //
+					).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString(EVERETT, mTrip.getHeadsignId());
+				return true;
+			} else if (Arrays.asList( //
+					MONROE + SLASH + GOLD_BAR, //
+					GOLD_BAR //
+					).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString(GOLD_BAR, mTrip.getHeadsignId());
 				return true;
-			} else if (mTrip.getHeadsignId() == 1) {
-				mTrip.setHeadsignString(EVERETT_BOEING, mTrip.getHeadsignId());
+			}
+		} else if (mTrip.getRouteId() == 280L) {
+			if (Arrays.asList( //
+					EVERETT + SLASH + BOEING, //
+					EVERETT //
+					).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString(EVERETT, mTrip.getHeadsignId());
 				return true;
 			}
-		} else if (mTrip.getRouteId() == 280l) {
-			if (mTrip.getHeadsignId() == 0) {
-				mTrip.setHeadsignString(LAKE_STEVENS + SLASH + GRANITE_FALLS, mTrip.getHeadsignId());
-				return true;
-			} else if (mTrip.getHeadsignId() == 1) {
-				mTrip.setHeadsignString(EVERETT_BOEING, mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 417l) {
-			if (mTrip.getHeadsignId() == 1) {
-				mTrip.setHeadsignString(MUKILTEO, mTrip.getHeadsignId());
+		} else if (mTrip.getRouteId() == 535L) {
+			if (Arrays.asList( //
+					LYNNWOOD + AND + EVERETT, //
+					LYNNWOOD //
+					).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString(LYNNWOOD, mTrip.getHeadsignId());
 				return true;
 			}
-		} else if (mTrip.getRouteId() == 535l) {
-			if (mTrip.getHeadsignId() == 1) {
-				mTrip.setHeadsignString(LYNNWOOD + AND + EVERETT, mTrip.getHeadsignId());
+		} else if (mTrip.getRouteId() == 701L) {
+			if (Arrays.asList( //
+					AURORA_VILLAGE, //
+					AURORA_VILLAGE_STATION //
+					).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString(AURORA_VILLAGE_STATION, mTrip.getHeadsignId());
 				return true;
 			}
-		} else if (mTrip.getRouteId() == 701l) { // SWIFT
-			if (mTrip.getHeadsignId() == 0) {
-				mTrip.setHeadsignString(AURORA_VILLAGE_TRANSIT_CENTER, mTrip.getHeadsignId());
-				return true;
-			} else if (mTrip.getHeadsignId() == 1) {
-				mTrip.setHeadsignString(EVERETT_STATION, mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 810l) {
-			if (mTrip.getHeadsignId() == 0) {
-				mTrip.setHeadsignString(UNIVERSITY_DISTRICT_SHORT, mTrip.getHeadsignId());
-				return true;
-			} else if (mTrip.getHeadsignId() == 1) {
+		} else if (mTrip.getRouteId() == 810L) {
+			if (Arrays.asList( //
+					LYNNWOOD, //
+					MC_COLLUM_PARK_PARK_AND_RIDE //
+					).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString(MC_COLLUM_PARK_PARK_AND_RIDE, mTrip.getHeadsignId());
 				return true;
 			}
-		} else if (mTrip.getRouteId() == 821l) {
-			if (mTrip.getHeadsignId() == 1) {
+		} else if (mTrip.getRouteId() == 821L) {
+			if (Arrays.asList( //
+					LYNNWOOD, //
+					MARYSVILLE //
+					).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString(MARYSVILLE, mTrip.getHeadsignId());
 				return true;
 			}
+		}
+		if (isGoodEnoughAccepted()) {
+			return super.mergeHeadsign(mTrip, mTripToMerge);
 		}
 		System.out.printf("\nUnexpected trips to merge: %s & %s!\n", mTrip, mTripToMerge);
 		System.exit(-1);
