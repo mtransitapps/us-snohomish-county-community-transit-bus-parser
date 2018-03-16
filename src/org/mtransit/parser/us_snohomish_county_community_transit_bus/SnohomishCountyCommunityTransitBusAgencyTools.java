@@ -181,7 +181,7 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 	@Override
 	public int compareEarly(long routeId, List<MTripStop> list1, List<MTripStop> list2, MTripStop ts1, MTripStop ts2, GStop ts1GStop, GStop ts2GStop) {
 		if (ALL_ROUTE_TRIPS2.containsKey(routeId)) {
-			return ALL_ROUTE_TRIPS2.get(routeId).compare(routeId, list1, list2, ts1, ts2, ts1GStop, ts2GStop);
+			return ALL_ROUTE_TRIPS2.get(routeId).compare(routeId, list1, list2, ts1, ts2, ts1GStop, ts2GStop, this);
 		}
 		return super.compareEarly(routeId, list1, list2, ts1, ts2, ts1GStop, ts2GStop);
 	}
@@ -197,7 +197,7 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 	@Override
 	public Pair<Long[], Integer[]> splitTripStop(MRoute mRoute, GTrip gTrip, GTripStop gTripStop, ArrayList<MTrip> splitTrips, GSpec routeGTFS) {
 		if (ALL_ROUTE_TRIPS2.containsKey(mRoute.getId())) {
-			return SplitUtils.splitTripStop(mRoute, gTrip, gTripStop, routeGTFS, ALL_ROUTE_TRIPS2.get(mRoute.getId()));
+			return SplitUtils.splitTripStop(mRoute, gTrip, gTripStop, routeGTFS, ALL_ROUTE_TRIPS2.get(mRoute.getId()), this);
 		}
 		return super.splitTripStop(mRoute, gTrip, gTripStop, splitTrips, routeGTFS);
 	}
@@ -225,7 +225,8 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 	private static final String EVERETT = "Everett";
 	private static final String EVERETT_BOEING = EVERETT + " Boeing";
 	private static final String GOLD_BAR = "Gold Bar";
-	private static final String HARDESON_ROAD = "Hardeson Rd";
+	private static final String HARDESON = "Hardeson";
+	private static final String HARDESON_ROAD = HARDESON + " Rd";
 	private static final String LYNNWOOD = "Lynnwood";
 	private static final String MARYSVILLE = "Marysville";
 	private static final String MC_COLLUM_PARK = "McCollum Pk";
@@ -237,6 +238,12 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 		List<String> headsignsValues = Arrays.asList(mTrip.getHeadsignValue(), mTripToMerge.getHeadsignValue());
 		if (mTrip.getRouteId() == 105L) {
 			if (Arrays.asList( //
+					MARINER_PARK_AND_RIDE, //
+					HARDESON //
+					).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString(HARDESON, mTrip.getHeadsignId());
+				return true;
+			} else if (Arrays.asList( //
 					MARINER_PARK_AND_RIDE, //
 					HARDESON_ROAD //
 					).containsAll(headsignsValues)) {
@@ -259,6 +266,13 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 				mTrip.setHeadsignString(EVERETT, mTrip.getHeadsignId());
 				return true;
 			}
+			if (Arrays.asList( //
+					MONROE, //
+					GOLD_BAR //
+					).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString(GOLD_BAR, mTrip.getHeadsignId());
+				return true;
+			}
 		} else if (mTrip.getRouteId() == 271L) {
 			if (Arrays.asList( //
 					EVERETT + SLASH + BOEING, //
@@ -267,6 +281,7 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 				mTrip.setHeadsignString(EVERETT, mTrip.getHeadsignId());
 				return true;
 			} else if (Arrays.asList( //
+					MONROE, //
 					MONROE + SLASH + GOLD_BAR, //
 					GOLD_BAR //
 					).containsAll(headsignsValues)) {
@@ -275,10 +290,18 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 			}
 		} else if (mTrip.getRouteId() == 280L) {
 			if (Arrays.asList( //
+					BOEING, //
 					EVERETT + SLASH + BOEING, //
 					EVERETT //
 					).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString(EVERETT, mTrip.getHeadsignId());
+				return true;
+			}
+			if (Arrays.asList( //
+					"Lk Stevens", //
+					"Granite Falls" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Granite Falls", mTrip.getHeadsignId());
 				return true;
 			}
 		} else if (mTrip.getRouteId() == 535L) {
@@ -313,9 +336,6 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 				mTrip.setHeadsignString(MARYSVILLE, mTrip.getHeadsignId());
 				return true;
 			}
-		}
-		if (isGoodEnoughAccepted()) {
-			return super.mergeHeadsign(mTrip, mTripToMerge);
 		}
 		System.out.printf("\nUnexpected trips to merge: %s & %s!\n", mTrip, mTripToMerge);
 		System.exit(-1);
