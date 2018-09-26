@@ -36,7 +36,7 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 		if (args == null || args.length == 0) {
 			args = new String[3];
 			args[0] = "input/gtfs.zip";
-			args[1] = "../../mtransitapps/us-snohomish-county-community-transit-bus-android/res/raw/";
+			args[1] = "../app-android/res/raw/";
 			args[2] = ""; // files-prefix
 		}
 		new SnohomishCountyCommunityTransitBusAgencyTools().start(args);
