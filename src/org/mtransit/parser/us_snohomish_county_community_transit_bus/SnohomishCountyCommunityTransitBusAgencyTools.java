@@ -101,6 +101,11 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 		return AGENCY_COLOR;
 	}
 
+	@Override
+	public long getRouteId(GRoute gRoute) {
+		return Long.parseLong(CleanUtils.cleanMergedID(gRoute.getRouteId()));
+	}
+
 	private static final String SWIFT_COLOR = "2DA343"; // GREEN (from PDF map)
 	private static final String LOCAL_ROUTES_COLOR = null; // AGENCY COLOR // BLUE (from PDF map)
 	private static final String COMMUTER_ROUTES_COLOR = "F6861F"; // ORANGE (from PDF map)
@@ -181,6 +186,12 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 	static {
 		HashMap<Long, RouteTripSpec> map2 = new HashMap<Long, RouteTripSpec>();
 		ALL_ROUTE_TRIPS2 = map2;
+	}
+
+	@Override
+	public String cleanStopOriginalId(String gStopId) {
+		gStopId = CleanUtils.cleanMergedID(gStopId);
+		return gStopId;
 	}
 
 	@Override
@@ -266,6 +277,7 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 		} else if (mTrip.getRouteId() == 270L) {
 			if (Arrays.asList( //
 					BOEING, //
+					"Seaway TC", //
 					EVERETT //
 					).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString(EVERETT, mTrip.getHeadsignId());
@@ -297,6 +309,7 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 			if (Arrays.asList( //
 					BOEING, //
 					EVERETT + SLASH + BOEING, //
+					"Seaway TC", //
 					EVERETT //
 					).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString(EVERETT, mTrip.getHeadsignId());
@@ -405,5 +418,22 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 		gStopName = CleanUtils.removePoints(gStopName);
 		gStopName = CleanUtils.cleanStreetTypes(gStopName);
 		return CleanUtils.cleanLabel(gStopName);
+	}
+
+	@Override
+	public int getStopId(GStop gStop) {
+		String stopId = gStop.getStopId();
+		if (stopId != null && stopId.length() > 0) {
+			if (Utils.isDigitsOnly(stopId)) {
+				return Integer.valueOf(stopId);
+			}
+			stopId = CleanUtils.cleanMergedID(stopId);
+			if (Utils.isDigitsOnly(stopId)) {
+				return Integer.valueOf(stopId);
+			}
+		}
+		System.out.println("Unexpected stop ID for " + gStop + " !");
+		System.exit(-1);
+		return -1;
 	}
 }
