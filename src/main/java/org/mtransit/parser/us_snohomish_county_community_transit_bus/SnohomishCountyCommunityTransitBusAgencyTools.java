@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.mtransit.parser.CleanUtils;
+import org.mtransit.parser.ColorUtils;
 import org.mtransit.parser.DefaultAgencyTools;
 import org.mtransit.parser.Pair;
 import org.mtransit.parser.SplitUtils;
@@ -114,7 +115,7 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 	@Override
 	public String getRouteColor(GRoute gRoute) {
 		if (StringUtils.isEmpty(gRoute.getRouteColor()) //
-				|| DefaultAgencyTools.WHITE.equalsIgnoreCase(gRoute.getRouteColor())) {
+				|| ColorUtils.WHITE.equalsIgnoreCase(gRoute.getRouteColor())) {
 			int rsn = Integer.parseInt(gRoute.getRouteId());
 			switch (rsn) {
 			// @formatter:off
