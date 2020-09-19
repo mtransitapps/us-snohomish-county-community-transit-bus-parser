@@ -28,9 +28,12 @@ import org.mtransit.parser.mt.data.MRoute;
 import org.mtransit.parser.mt.data.MTrip;
 import org.mtransit.parser.mt.data.MTripStop;
 
-// http://www.soundtransit.org/Developer-resources/Data-downloads
+// https://www.soundtransit.org/help-contacts/business-information/open-transit-data-otd
+// https://www.soundtransit.org/help-contacts/business-information/open-transit-data-otd/otd-downloads
 // http://developer.onebusaway.org/tmp/sound/gtfs/modified/29_gtfs.zip
 // http://developer.onebusaway.org/tmp/sound/gtfs/modified_staged/29_gtfs.zip
+// https://www.communitytransit.org/OpenData
+// https://www.communitytransit.org/docs/default-source/open-data/gtfs/current.zip
 public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgencyTools {
 
 	public static void main(String[] args) {
