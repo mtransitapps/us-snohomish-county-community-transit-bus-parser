@@ -19,10 +19,7 @@ import org.mtransit.parser.mt.data.MAgency;
 import org.mtransit.parser.mt.data.MRoute;
 import org.mtransit.parser.mt.data.MTrip;
 
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
-import java.util.regex.Pattern;
 
 // https://www.soundtransit.org/help-contacts/business-information/open-transit-data-otd
 // https://www.soundtransit.org/help-contacts/business-information/open-transit-data-otd/otd-downloads
@@ -199,150 +196,21 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 		);
 	}
 
-	private static final String _SLASH_ = " / ";
-	private static final String _AND_ = " & ";
-	private static final String PARK_AND_RIDE_SHORT = "P&R";
-
-	private static final String MARINER_PARK_AND_RIDE = "Mariner " + PARK_AND_RIDE_SHORT;
-
-	private static final String AURORA_VILLAGE = "Aurora Vlg";
-	private static final String AURORA_VILLAGE_STATION = AURORA_VILLAGE + " Sta";
-	private static final String ARLINGTON = "Arlington";
-	private static final String BOEING = "Boeing";
-	private static final String DARRINGTON = "Darrington";
-	private static final String EVERETT = "Everett";
-	private static final String EVERETT_BOEING = EVERETT + " Boeing";
-	private static final String GOLD_BAR = "Gold Bar";
-	private static final String HARDESON = "Hardeson";
-	private static final String HARDESON_ROAD = HARDESON + " Rd";
-	private static final String LYNNWOOD = "Lynnwood";
-	private static final String MARYSVILLE = "Marysville";
-	private static final String MC_COLLUM_PARK = "McCollum Pk";
-	private static final String MC_COLLUM_PARK_PARK_AND_RIDE = MC_COLLUM_PARK + " " + PARK_AND_RIDE_SHORT;
-	private static final String MONROE = "Monroe";
+	@Override
+	public boolean directionFinderEnabled() {
+		return true;
+	}
 
 	@Override
 	public boolean mergeHeadsign(@NotNull MTrip mTrip, @NotNull MTrip mTripToMerge) {
-		List<String> headsignsValues = Arrays.asList(mTrip.getHeadsignValue(), mTripToMerge.getHeadsignValue());
-		if (mTrip.getRouteId() == 105L) {
-			if (Arrays.asList( //
-					MARINER_PARK_AND_RIDE, //
-					HARDESON //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString(HARDESON, mTrip.getHeadsignId());
-				return true;
-			} else if (Arrays.asList( //
-					MARINER_PARK_AND_RIDE, //
-					HARDESON_ROAD //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString(HARDESON_ROAD, mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 230L) {
-			if (Arrays.asList( //
-					ARLINGTON, //
-					DARRINGTON //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString(DARRINGTON, mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 270L) {
-			if (Arrays.asList( //
-					BOEING, //
-					"Seaway TC", //
-					EVERETT //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString(EVERETT, mTrip.getHeadsignId());
-				return true;
-			}
-			if (Arrays.asList( //
-					MONROE, //
-					GOLD_BAR //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString(GOLD_BAR, mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 271L) {
-			if (Arrays.asList( //
-					EVERETT + _SLASH_ + BOEING, //
-					EVERETT //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString(EVERETT, mTrip.getHeadsignId());
-				return true;
-			} else if (Arrays.asList( //
-					MONROE, //
-					MONROE + _SLASH_ + GOLD_BAR, //
-					GOLD_BAR //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString(GOLD_BAR, mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 280L) {
-			if (Arrays.asList( //
-					BOEING, //
-					EVERETT + _SLASH_ + BOEING, //
-					"Seaway TC", //
-					EVERETT //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString(EVERETT, mTrip.getHeadsignId());
-				return true;
-			}
-			if (Arrays.asList( //
-					"Lk Stevens", //
-					"Granite Falls" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Granite Falls", mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 535L) {
-			if (Arrays.asList( //
-					LYNNWOOD + _AND_ + EVERETT, //
-					LYNNWOOD //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString(LYNNWOOD, mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 701L) {
-			if (Arrays.asList( //
-					AURORA_VILLAGE, //
-					AURORA_VILLAGE_STATION //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString(AURORA_VILLAGE_STATION, mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 810L) {
-			if (Arrays.asList( //
-					LYNNWOOD, //
-					MC_COLLUM_PARK_PARK_AND_RIDE //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString(MC_COLLUM_PARK_PARK_AND_RIDE, mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 821L) {
-			if (Arrays.asList( //
-					LYNNWOOD, //
-					MARYSVILLE //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString(MARYSVILLE, mTrip.getHeadsignId());
-				return true;
-			}
-		}
 		throw new MTLog.Fatal("Unexpected trips to merge: %s & %s!", mTrip, mTripToMerge);
 	}
-
-	private static final Pattern EVERETT_EVERETT_BOEING = Pattern.compile("((^|\\W)(everett / everett boeing)(\\W|$))", Pattern.CASE_INSENSITIVE);
-	private static final String EVERETT_EVERETT_BOEING_REPLACEMENT = "$2" + EVERETT_BOEING + "$4";
-
-	private static final Pattern SWIFT_STATION = Pattern.compile("((^|\\W)(swift station|swift sta)(\\W|$))", Pattern.CASE_INSENSITIVE);
-	private static final String SWIFT_STATION_REPLACEMENT = "$2" + "Sta" + "$4";
 
 	@NotNull
 	@Override
 	public String cleanTripHeadsign(@NotNull String tripHeadsign) {
 		tripHeadsign = CleanUtils.keepToAndRemoveVia(tripHeadsign);
 		tripHeadsign = CleanUtils.cleanSlashes(tripHeadsign);
-		tripHeadsign = EVERETT_EVERETT_BOEING.matcher(tripHeadsign).replaceAll(EVERETT_EVERETT_BOEING_REPLACEMENT);
-		tripHeadsign = SWIFT_STATION.matcher(tripHeadsign).replaceAll(SWIFT_STATION_REPLACEMENT);
 		tripHeadsign = CleanUtils.CLEAN_AT.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AT_REPLACEMENT);
 		tripHeadsign = CleanUtils.CLEAN_AND.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
 		tripHeadsign = CleanUtils.cleanNumbers(tripHeadsign);
