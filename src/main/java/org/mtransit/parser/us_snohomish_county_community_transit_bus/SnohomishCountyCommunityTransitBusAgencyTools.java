@@ -1,20 +1,13 @@
 package org.mtransit.parser.us_snohomish_county_community_transit_bus;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringUtils;
-import org.mtransit.parser.CleanUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.mtransit.commons.CharUtils;
+import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.StringUtils;
 import org.mtransit.parser.ColorUtils;
 import org.mtransit.parser.DefaultAgencyTools;
-import org.mtransit.parser.Pair;
-import org.mtransit.parser.SplitUtils;
-import org.mtransit.parser.SplitUtils.RouteTripSpec;
+import org.mtransit.parser.MTLog;
 import org.mtransit.parser.Utils;
 import org.mtransit.parser.gtfs.data.GCalendar;
 import org.mtransit.parser.gtfs.data.GCalendarDate;
@@ -22,11 +15,14 @@ import org.mtransit.parser.gtfs.data.GRoute;
 import org.mtransit.parser.gtfs.data.GSpec;
 import org.mtransit.parser.gtfs.data.GStop;
 import org.mtransit.parser.gtfs.data.GTrip;
-import org.mtransit.parser.gtfs.data.GTripStop;
 import org.mtransit.parser.mt.data.MAgency;
 import org.mtransit.parser.mt.data.MRoute;
 import org.mtransit.parser.mt.data.MTrip;
-import org.mtransit.parser.mt.data.MTripStop;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.regex.Pattern;
 
 // https://www.soundtransit.org/help-contacts/business-information/open-transit-data-otd
 // https://www.soundtransit.org/help-contacts/business-information/open-transit-data-otd/otd-downloads
@@ -36,7 +32,7 @@ import org.mtransit.parser.mt.data.MTripStop;
 // https://www.communitytransit.org/docs/default-source/open-data/gtfs/current.zip
 public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgencyTools {
 
-	public static void main(String[] args) {
+	public static void main(@Nullable String[] args) {
 		if (args == null || args.length == 0) {
 			args = new String[3];
 			args[0] = "input/gtfs.zip";
@@ -46,51 +42,53 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 		new SnohomishCountyCommunityTransitBusAgencyTools().start(args);
 	}
 
-	private HashSet<String> serviceIds;
+	@Nullable
+	private HashSet<Integer> serviceIdInts;
 
 	@Override
-	public void start(String[] args) {
-		System.out.printf("\nGenerating Community Transit bus data...");
+	public void start(@NotNull String[] args) {
+		MTLog.log("Generating Community Transit bus data...");
 		long start = System.currentTimeMillis();
-		this.serviceIds = extractUsefulServiceIds(args, this, true);
+		this.serviceIdInts = extractUsefulServiceIdInts(args, this, true);
 		super.start(args);
-		System.out.printf("\nGenerating Community Transit bus data... DONE in %s.\n", Utils.getPrettyDuration(System.currentTimeMillis() - start));
+		MTLog.log("Generating Community Transit bus data... DONE in %s.", Utils.getPrettyDuration(System.currentTimeMillis() - start));
 	}
 
 	@Override
 	public boolean excludingAll() {
-		return this.serviceIds != null && this.serviceIds.isEmpty();
+		return this.serviceIdInts != null && this.serviceIdInts.isEmpty();
 	}
 
 	@Override
-	public boolean excludeCalendar(GCalendar gCalendar) {
-		if (this.serviceIds != null) {
-			return excludeUselessCalendar(gCalendar, this.serviceIds);
+	public boolean excludeCalendar(@NotNull GCalendar gCalendar) {
+		if (this.serviceIdInts != null) {
+			return excludeUselessCalendarInt(gCalendar, this.serviceIdInts);
 		}
 		return super.excludeCalendar(gCalendar);
 	}
 
 	@Override
-	public boolean excludeCalendarDate(GCalendarDate gCalendarDates) {
-		if (this.serviceIds != null) {
-			return excludeUselessCalendarDate(gCalendarDates, this.serviceIds);
+	public boolean excludeCalendarDate(@NotNull GCalendarDate gCalendarDates) {
+		if (this.serviceIdInts != null) {
+			return excludeUselessCalendarDateInt(gCalendarDates, this.serviceIdInts);
 		}
 		return super.excludeCalendarDate(gCalendarDates);
 	}
 
 	@Override
-	public boolean excludeTrip(GTrip gTrip) {
-		if (this.serviceIds != null) {
-			return excludeUselessTrip(gTrip, this.serviceIds);
+	public boolean excludeTrip(@NotNull GTrip gTrip) {
+		if (this.serviceIdInts != null) {
+			return excludeUselessTripInt(gTrip, this.serviceIdInts);
 		}
 		return super.excludeTrip(gTrip);
 	}
 
 	@Override
-	public boolean excludeRoute(GRoute gRoute) {
+	public boolean excludeRoute(@NotNull GRoute gRoute) {
 		return super.excludeRoute(gRoute);
 	}
 
+	@NotNull
 	@Override
 	public Integer getAgencyRouteType() {
 		return MAgency.ROUTE_TYPE_BUS;
@@ -100,13 +98,15 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 
 	private static final String AGENCY_COLOR = AGENCY_COLOR_BLUE;
 
+	@NotNull
 	@Override
 	public String getAgencyColor() {
 		return AGENCY_COLOR;
 	}
 
 	@Override
-	public long getRouteId(GRoute gRoute) {
+	public long getRouteId(@NotNull GRoute gRoute) {
+		//noinspection deprecation
 		return Long.parseLong(CleanUtils.cleanMergedID(gRoute.getRouteId()));
 	}
 
@@ -115,10 +115,13 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 	private static final String COMMUTER_ROUTES_COLOR = "F6861F"; // ORANGE (from PDF map)
 	private static final String ST_EXPRESS_ROUTES_COLOR = "8D8687"; // GRAY (from PDF map)
 
+	@SuppressWarnings("DuplicateBranchesInSwitch")
+	@Nullable
 	@Override
-	public String getRouteColor(GRoute gRoute) {
+	public String getRouteColor(@NotNull GRoute gRoute) {
 		if (StringUtils.isEmpty(gRoute.getRouteColor()) //
 				|| ColorUtils.WHITE.equalsIgnoreCase(gRoute.getRouteColor())) {
+			//noinspection deprecation
 			int rsn = Integer.parseInt(gRoute.getRouteId());
 			switch (rsn) {
 			// @formatter:off
@@ -176,66 +179,31 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 			case 880: return COMMUTER_ROUTES_COLOR;
 			// @formatter:on
 			}
-			if (isGoodEnoughAccepted()) {
-				return null;
-			}
-			System.out.printf("\nUnexpected route color %s!\n", gRoute);
-			System.exit(-1);
-			return null;
+			throw new MTLog.Fatal("Unexpected route color %s!", gRoute);
 		}
 		return super.getRouteColor(gRoute);
 	}
 
-	private static HashMap<Long, RouteTripSpec> ALL_ROUTE_TRIPS2;
-	static {
-		HashMap<Long, RouteTripSpec> map2 = new HashMap<Long, RouteTripSpec>();
-		ALL_ROUTE_TRIPS2 = map2;
-	}
-
+	@NotNull
 	@Override
-	public String cleanStopOriginalId(String gStopId) {
+	public String cleanStopOriginalId(@NotNull String gStopId) {
 		gStopId = CleanUtils.cleanMergedID(gStopId);
 		return gStopId;
 	}
 
 	@Override
-	public int compareEarly(long routeId, List<MTripStop> list1, List<MTripStop> list2, MTripStop ts1, MTripStop ts2, GStop ts1GStop, GStop ts2GStop) {
-		if (ALL_ROUTE_TRIPS2.containsKey(routeId)) {
-			return ALL_ROUTE_TRIPS2.get(routeId).compare(routeId, list1, list2, ts1, ts2, ts1GStop, ts2GStop, this);
-		}
-		return super.compareEarly(routeId, list1, list2, ts1, ts2, ts1GStop, ts2GStop);
+	public void setTripHeadsign(@NotNull MRoute mRoute, @NotNull MTrip mTrip, @NotNull GTrip gTrip, @NotNull GSpec gtfs) {
+		mTrip.setHeadsignString(
+				cleanTripHeadsign(gTrip.getTripHeadsignOrDefault()),
+				gTrip.getDirectionIdOrDefault()
+		);
 	}
 
-	@Override
-	public ArrayList<MTrip> splitTrip(MRoute mRoute, GTrip gTrip, GSpec gtfs) {
-		if (ALL_ROUTE_TRIPS2.containsKey(mRoute.getId())) {
-			return ALL_ROUTE_TRIPS2.get(mRoute.getId()).getAllTrips();
-		}
-		return super.splitTrip(mRoute, gTrip, gtfs);
-	}
-
-	@Override
-	public Pair<Long[], Integer[]> splitTripStop(MRoute mRoute, GTrip gTrip, GTripStop gTripStop, ArrayList<MTrip> splitTrips, GSpec routeGTFS) {
-		if (ALL_ROUTE_TRIPS2.containsKey(mRoute.getId())) {
-			return SplitUtils.splitTripStop(mRoute, gTrip, gTripStop, routeGTFS, ALL_ROUTE_TRIPS2.get(mRoute.getId()), this);
-		}
-		return super.splitTripStop(mRoute, gTrip, gTripStop, splitTrips, routeGTFS);
-	}
-
-	@Override
-	public void setTripHeadsign(MRoute mRoute, MTrip mTrip, GTrip gTrip, GSpec gtfs) {
-		if (ALL_ROUTE_TRIPS2.containsKey(mRoute.getId())) {
-			return; // split
-		}
-		mTrip.setHeadsignString(cleanTripHeadsign(gTrip.getTripHeadsign()), gTrip.getDirectionId());
-	}
-
-	private static final String SLASH = " / ";
-	private static final String AND = " & ";
+	private static final String _SLASH_ = " / ";
+	private static final String _AND_ = " & ";
 	private static final String PARK_AND_RIDE_SHORT = "P&R";
 
 	private static final String MARINER_PARK_AND_RIDE = "Mariner " + PARK_AND_RIDE_SHORT;
-	private static final String TRANSIT_CENTER_SHORT = "TC";
 
 	private static final String AURORA_VILLAGE = "Aurora Vlg";
 	private static final String AURORA_VILLAGE_STATION = AURORA_VILLAGE + " Sta";
@@ -254,19 +222,19 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 	private static final String MONROE = "Monroe";
 
 	@Override
-	public boolean mergeHeadsign(MTrip mTrip, MTrip mTripToMerge) {
+	public boolean mergeHeadsign(@NotNull MTrip mTrip, @NotNull MTrip mTripToMerge) {
 		List<String> headsignsValues = Arrays.asList(mTrip.getHeadsignValue(), mTripToMerge.getHeadsignValue());
 		if (mTrip.getRouteId() == 105L) {
 			if (Arrays.asList( //
 					MARINER_PARK_AND_RIDE, //
 					HARDESON //
-					).containsAll(headsignsValues)) {
+			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString(HARDESON, mTrip.getHeadsignId());
 				return true;
 			} else if (Arrays.asList( //
 					MARINER_PARK_AND_RIDE, //
 					HARDESON_ROAD //
-					).containsAll(headsignsValues)) {
+			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString(HARDESON_ROAD, mTrip.getHeadsignId());
 				return true;
 			}
@@ -274,7 +242,7 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 			if (Arrays.asList( //
 					ARLINGTON, //
 					DARRINGTON //
-					).containsAll(headsignsValues)) {
+			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString(DARRINGTON, mTrip.getHeadsignId());
 				return true;
 			}
@@ -283,39 +251,39 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 					BOEING, //
 					"Seaway TC", //
 					EVERETT //
-					).containsAll(headsignsValues)) {
+			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString(EVERETT, mTrip.getHeadsignId());
 				return true;
 			}
 			if (Arrays.asList( //
 					MONROE, //
 					GOLD_BAR //
-					).containsAll(headsignsValues)) {
+			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString(GOLD_BAR, mTrip.getHeadsignId());
 				return true;
 			}
 		} else if (mTrip.getRouteId() == 271L) {
 			if (Arrays.asList( //
-					EVERETT + SLASH + BOEING, //
+					EVERETT + _SLASH_ + BOEING, //
 					EVERETT //
-					).containsAll(headsignsValues)) {
+			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString(EVERETT, mTrip.getHeadsignId());
 				return true;
 			} else if (Arrays.asList( //
 					MONROE, //
-					MONROE + SLASH + GOLD_BAR, //
+					MONROE + _SLASH_ + GOLD_BAR, //
 					GOLD_BAR //
-					).containsAll(headsignsValues)) {
+			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString(GOLD_BAR, mTrip.getHeadsignId());
 				return true;
 			}
 		} else if (mTrip.getRouteId() == 280L) {
 			if (Arrays.asList( //
 					BOEING, //
-					EVERETT + SLASH + BOEING, //
+					EVERETT + _SLASH_ + BOEING, //
 					"Seaway TC", //
 					EVERETT //
-					).containsAll(headsignsValues)) {
+			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString(EVERETT, mTrip.getHeadsignId());
 				return true;
 			}
@@ -328,9 +296,9 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 			}
 		} else if (mTrip.getRouteId() == 535L) {
 			if (Arrays.asList( //
-					LYNNWOOD + AND + EVERETT, //
+					LYNNWOOD + _AND_ + EVERETT, //
 					LYNNWOOD //
-					).containsAll(headsignsValues)) {
+			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString(LYNNWOOD, mTrip.getHeadsignId());
 				return true;
 			}
@@ -338,7 +306,7 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 			if (Arrays.asList( //
 					AURORA_VILLAGE, //
 					AURORA_VILLAGE_STATION //
-					).containsAll(headsignsValues)) {
+			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString(AURORA_VILLAGE_STATION, mTrip.getHeadsignId());
 				return true;
 			}
@@ -346,7 +314,7 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 			if (Arrays.asList( //
 					LYNNWOOD, //
 					MC_COLLUM_PARK_PARK_AND_RIDE //
-					).containsAll(headsignsValues)) {
+			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString(MC_COLLUM_PARK_PARK_AND_RIDE, mTrip.getHeadsignId());
 				return true;
 			}
@@ -354,58 +322,27 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 			if (Arrays.asList( //
 					LYNNWOOD, //
 					MARYSVILLE //
-					).containsAll(headsignsValues)) {
+			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString(MARYSVILLE, mTrip.getHeadsignId());
 				return true;
 			}
 		}
-		System.out.printf("\nUnexpected trips to merge: %s & %s!\n", mTrip, mTripToMerge);
-		System.exit(-1);
-		return false;
+		throw new MTLog.Fatal("Unexpected trips to merge: %s & %s!", mTrip, mTripToMerge);
 	}
 
-	private static final Pattern TO = Pattern.compile("((^|\\W){1}(to)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
-	private static final Pattern VIA = Pattern.compile("((^|\\W){1}(via)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
-
-	private static final String COMMUNITY_COLLEGE_SHORT = "CC";
-	private static final Pattern COMMUNITY_COLLEGE = Pattern.compile("((^|\\W){1}(community college)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
-	private static final String COMMUNITY_COLLEGE_REPLACEMENT = "$2" + COMMUNITY_COLLEGE_SHORT + "$4";
-
-	private static final Pattern EVERETT_EVERETT_BOEING = Pattern.compile("((^|\\W){1}(everett \\/ everett boeing)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final Pattern EVERETT_EVERETT_BOEING = Pattern.compile("((^|\\W)(everett / everett boeing)(\\W|$))", Pattern.CASE_INSENSITIVE);
 	private static final String EVERETT_EVERETT_BOEING_REPLACEMENT = "$2" + EVERETT_BOEING + "$4";
 
-	private static final Pattern PARK_AND_RIDE = Pattern.compile("((^|\\W){1}(park \\& ride)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
-	private static final String PARK_AND_RIDE_REPLACEMENT = "$2" + PARK_AND_RIDE_SHORT + "$4";
-
-	private static final Pattern SWIFT_STATION = Pattern.compile("((^|\\W){1}(swift station|swift sta)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final Pattern SWIFT_STATION = Pattern.compile("((^|\\W)(swift station|swift sta)(\\W|$))", Pattern.CASE_INSENSITIVE);
 	private static final String SWIFT_STATION_REPLACEMENT = "$2" + "Sta" + "$4";
 
-	private static final Pattern TRANSIT_CENTER = Pattern.compile("((^|\\W){1}(transit center|transit|centre)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
-	private static final String TRANSIT_CENTER_REPLACEMENT = "$2" + TRANSIT_CENTER_SHORT + "$4";
-
-	private static final String UNIVERSITY_DISTRICT_SHORT = "U District";
-	private static final Pattern UNIVERSITY_DISTRICT = Pattern.compile("((^|\\W){1}(university district)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
-	private static final String UNIVERSITY_DISTRICT_REPLACEMENT = "$2" + UNIVERSITY_DISTRICT_SHORT + "$4";
-
+	@NotNull
 	@Override
-	public String cleanTripHeadsign(String tripHeadsign) {
-		Matcher matcherTO = TO.matcher(tripHeadsign);
-		if (matcherTO.find()) {
-			String gTripHeadsignAfterTO = tripHeadsign.substring(matcherTO.end());
-			tripHeadsign = gTripHeadsignAfterTO;
-		}
-		Matcher matcherVIA = VIA.matcher(tripHeadsign);
-		if (matcherVIA.find()) {
-			String gTripHeadsignBeforeVIA = tripHeadsign.substring(0, matcherVIA.start());
-			tripHeadsign = gTripHeadsignBeforeVIA;
-		}
+	public String cleanTripHeadsign(@NotNull String tripHeadsign) {
+		tripHeadsign = CleanUtils.keepToAndRemoveVia(tripHeadsign);
 		tripHeadsign = CleanUtils.cleanSlashes(tripHeadsign);
-		tripHeadsign = COMMUNITY_COLLEGE.matcher(tripHeadsign).replaceAll(COMMUNITY_COLLEGE_REPLACEMENT);
 		tripHeadsign = EVERETT_EVERETT_BOEING.matcher(tripHeadsign).replaceAll(EVERETT_EVERETT_BOEING_REPLACEMENT);
-		tripHeadsign = PARK_AND_RIDE.matcher(tripHeadsign).replaceAll(PARK_AND_RIDE_REPLACEMENT);
-		tripHeadsign = TRANSIT_CENTER.matcher(tripHeadsign).replaceAll(TRANSIT_CENTER_REPLACEMENT);
 		tripHeadsign = SWIFT_STATION.matcher(tripHeadsign).replaceAll(SWIFT_STATION_REPLACEMENT);
-		tripHeadsign = UNIVERSITY_DISTRICT.matcher(tripHeadsign).replaceAll(UNIVERSITY_DISTRICT_REPLACEMENT);
 		tripHeadsign = CleanUtils.CLEAN_AT.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AT_REPLACEMENT);
 		tripHeadsign = CleanUtils.CLEAN_AND.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
 		tripHeadsign = CleanUtils.cleanNumbers(tripHeadsign);
@@ -413,31 +350,30 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 		return CleanUtils.cleanLabel(tripHeadsign);
 	}
 
+	@NotNull
 	@Override
-	public String cleanStopName(String gStopName) {
+	public String cleanStopName(@NotNull String gStopName) {
 		gStopName = CleanUtils.SAINT.matcher(gStopName).replaceAll(CleanUtils.SAINT_REPLACEMENT);
 		gStopName = CleanUtils.CLEAN_AND.matcher(gStopName).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
 		gStopName = CleanUtils.CLEAN_AT.matcher(gStopName).replaceAll(CleanUtils.CLEAN_AT_REPLACEMENT);
 		gStopName = CleanUtils.cleanSlashes(gStopName);
-		gStopName = CleanUtils.removePoints(gStopName);
 		gStopName = CleanUtils.cleanStreetTypes(gStopName);
 		return CleanUtils.cleanLabel(gStopName);
 	}
 
 	@Override
-	public int getStopId(GStop gStop) {
+	public int getStopId(@NotNull GStop gStop) {
+		//noinspection deprecation
 		String stopId = gStop.getStopId();
 		if (stopId != null && stopId.length() > 0) {
-			if (Utils.isDigitsOnly(stopId)) {
-				return Integer.valueOf(stopId);
+			if (CharUtils.isDigitsOnly(stopId)) {
+				return Integer.parseInt(stopId);
 			}
 			stopId = CleanUtils.cleanMergedID(stopId);
-			if (Utils.isDigitsOnly(stopId)) {
-				return Integer.valueOf(stopId);
+			if (CharUtils.isDigitsOnly(stopId)) {
+				return Integer.parseInt(stopId);
 			}
 		}
-		System.out.println("Unexpected stop ID for " + gStop + " !");
-		System.exit(-1);
-		return -1;
+		throw new MTLog.Fatal("Unexpected stop ID for " + gStop + " !");
 	}
 }
