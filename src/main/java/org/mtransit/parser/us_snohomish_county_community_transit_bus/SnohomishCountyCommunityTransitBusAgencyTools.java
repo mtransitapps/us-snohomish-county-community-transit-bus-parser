@@ -4,22 +4,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mtransit.commons.CharUtils;
 import org.mtransit.commons.CleanUtils;
-import org.mtransit.commons.StringUtils;
 import org.mtransit.parser.ColorUtils;
 import org.mtransit.parser.DefaultAgencyTools;
 import org.mtransit.parser.MTLog;
-import org.mtransit.parser.Utils;
-import org.mtransit.parser.gtfs.data.GCalendar;
-import org.mtransit.parser.gtfs.data.GCalendarDate;
 import org.mtransit.parser.gtfs.data.GRoute;
-import org.mtransit.parser.gtfs.data.GSpec;
 import org.mtransit.parser.gtfs.data.GStop;
-import org.mtransit.parser.gtfs.data.GTrip;
 import org.mtransit.parser.mt.data.MAgency;
-import org.mtransit.parser.mt.data.MRoute;
-import org.mtransit.parser.mt.data.MTrip;
 
-import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
 
 // https://www.soundtransit.org/help-contacts/business-information/open-transit-data-otd
 // https://www.soundtransit.org/help-contacts/business-information/open-transit-data-otd/otd-downloads
@@ -32,6 +25,12 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 
 	public static void main(@NotNull String[] args) {
 		new SnohomishCountyCommunityTransitBusAgencyTools().start(args);
+	}
+
+	@Nullable
+	@Override
+	public List<Locale> getSupportedLanguages() {
+		return LANG_EN;
 	}
 
 	@Override
@@ -56,83 +55,119 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 	}
 
 	@Override
-	public long getRouteId(@NotNull GRoute gRoute) {
-		//noinspection deprecation
-		return Long.parseLong(CleanUtils.cleanMergedID(gRoute.getRouteId()));
+	public boolean defaultRouteIdEnabled() {
+		return true;
 	}
 
-	private static final String SWIFT_COLOR = "2DA343"; // GREEN (from PDF map)
-	private static final String LOCAL_ROUTES_COLOR = null; // AGENCY COLOR // BLUE (from PDF map)
-	private static final String COMMUTER_ROUTES_COLOR = "F6861F"; // ORANGE (from PDF map)
-	private static final String ST_EXPRESS_ROUTES_COLOR = "8D8687"; // GRAY (from PDF map)
+	@Override
+	public boolean useRouteShortNameForRouteId() {
+		return true;
+	}
+
+	@Nullable
+	@Override
+	public Long convertRouteIdFromShortNameNotSupported(@NotNull String routeShortName) {
+		switch (routeShortName) {
+		case "Swift Blue":
+			return 701L;
+		case "Swift Green":
+			return 702L;
+		}
+		return super.convertRouteIdFromShortNameNotSupported(routeShortName);
+	}
+
+	@Override
+	public boolean defaultRouteLongNameEnabled() {
+		return true;
+	}
+
+	// https://www.communitytransit.org/busplus
+	// https://www.communitytransit.org/docs/default-source/mappdfs/21marchmaps/busplusbookpdf/bus-plus-march-2021-web.pdf?sfvrsn=f94a3bd4_4
+	private static final String SWIFT_GREEN_COLOR = "36A535"; // GREEN (from PDF map)
+	private static final String SWIFT_BLUE_COLOR = "1477C6"; // BLUE  (from PDF map)
+	private static final String LOCAL_ROUTES_COLOR = "42B3B7"; // BLUE TEAL (from PDF map)
+	private static final String COMMUTER_ROUTES_COLOR = "F3AA4F"; // ORANGE (from PDF map)
+	private static final String ST_EXPRESS_ROUTES_COLOR = "B2B1B1"; // GRAY (from PDF map)
+
+	@Nullable
+	@Override
+	public String fixColor(@Nullable String color) {
+		if (ColorUtils.WHITE.equalsIgnoreCase(color)) {
+			return null;
+		}
+		return super.fixColor(color);
+	}
 
 	@SuppressWarnings("DuplicateBranchesInSwitch")
 	@Nullable
 	@Override
-	public String getRouteColor(@NotNull GRoute gRoute) {
-		if (StringUtils.isEmpty(gRoute.getRouteColor()) //
-				|| ColorUtils.WHITE.equalsIgnoreCase(gRoute.getRouteColor())) {
-			//noinspection deprecation
-			int rsn = Integer.parseInt(gRoute.getRouteId());
-			switch (rsn) {
-			// @formatter:off
-			case 101: return LOCAL_ROUTES_COLOR;
-			case 105: return LOCAL_ROUTES_COLOR;
-			case 106: return LOCAL_ROUTES_COLOR;
-			case 109: return LOCAL_ROUTES_COLOR;
-			case 111: return LOCAL_ROUTES_COLOR;
-			case 112: return LOCAL_ROUTES_COLOR;
-			case 113: return LOCAL_ROUTES_COLOR;
-			case 115: return LOCAL_ROUTES_COLOR;
-			case 116: return LOCAL_ROUTES_COLOR;
-			case 119: return LOCAL_ROUTES_COLOR;
-			case 120: return LOCAL_ROUTES_COLOR;
-			case 130: return LOCAL_ROUTES_COLOR;
-			case 196: return LOCAL_ROUTES_COLOR;
-			case 201: return LOCAL_ROUTES_COLOR;
-			case 202: return LOCAL_ROUTES_COLOR;
-			case 209: return LOCAL_ROUTES_COLOR;
-			case 220: return LOCAL_ROUTES_COLOR;
-			case 222: return LOCAL_ROUTES_COLOR;
-			case 227: return LOCAL_ROUTES_COLOR;
-			case 230: return LOCAL_ROUTES_COLOR;
-			case 240: return LOCAL_ROUTES_COLOR;
-			case 247: return LOCAL_ROUTES_COLOR;
-			case 270: return LOCAL_ROUTES_COLOR;
-			case 271: return LOCAL_ROUTES_COLOR;
-			case 277: return LOCAL_ROUTES_COLOR;
-			case 280: return LOCAL_ROUTES_COLOR;
-			case 402: return COMMUTER_ROUTES_COLOR;
-			case 405: return COMMUTER_ROUTES_COLOR;
-			case 410: return COMMUTER_ROUTES_COLOR;
-			case 412: return COMMUTER_ROUTES_COLOR;
-			case 413: return COMMUTER_ROUTES_COLOR;
-			case 415: return COMMUTER_ROUTES_COLOR;
-			case 416: return COMMUTER_ROUTES_COLOR;
-			case 417: return COMMUTER_ROUTES_COLOR;
-			case 421: return COMMUTER_ROUTES_COLOR;
-			case 422: return COMMUTER_ROUTES_COLOR;
-			case 424: return COMMUTER_ROUTES_COLOR;
-			case 425: return COMMUTER_ROUTES_COLOR;
-			case 435: return COMMUTER_ROUTES_COLOR;
-			case 510: return ST_EXPRESS_ROUTES_COLOR;
-			case 511: return ST_EXPRESS_ROUTES_COLOR;
-			case 512: return ST_EXPRESS_ROUTES_COLOR;
-			case 513: return ST_EXPRESS_ROUTES_COLOR;
-			case 532: return ST_EXPRESS_ROUTES_COLOR;
-			case 535: return ST_EXPRESS_ROUTES_COLOR;
-			case 701: return SWIFT_COLOR;
-			case 810: return COMMUTER_ROUTES_COLOR;
-			case 821: return COMMUTER_ROUTES_COLOR;
-			case 855: return COMMUTER_ROUTES_COLOR;
-			case 860: return COMMUTER_ROUTES_COLOR;
-			case 871: return COMMUTER_ROUTES_COLOR;
-			case 880: return COMMUTER_ROUTES_COLOR;
-			// @formatter:on
-			}
-			throw new MTLog.Fatal("Unexpected route color %s!", gRoute);
+	public String provideMissingRouteColor(@NotNull GRoute gRoute) {
+		//noinspection deprecation
+		switch (gRoute.getRouteShortName()) {
+		case "101":
+		case "105":
+		case "106":
+		case "107":
+		case "109":
+		case "111":
+		case "112":
+		case "113":
+		case "115":
+		case "116":
+		case "119":
+		case "120":
+		case "130":
+		case "196":
+		case "201":
+		case "202":
+		case "209":
+		case "220":
+		case "222":
+		case "227":
+		case "230":
+		case "240":
+		case "247":
+		case "270":
+		case "271":
+		case "277":
+		case "280":
+			return LOCAL_ROUTES_COLOR;
+		case "402":
+		case "405":
+		case "410":
+		case "412":
+		case "413":
+		case "415":
+		case "416":
+		case "417":
+		case "421":
+		case "422":
+		case "424":
+		case "425":
+		case "435":
+			return COMMUTER_ROUTES_COLOR;
+		case "510":
+		case "511":
+		case "512":
+		case "513":
+		case "532":
+		case "535":
+			return ST_EXPRESS_ROUTES_COLOR;
+		case "701":
+		case "Swift Blue":
+			return SWIFT_BLUE_COLOR;
+		case "702":
+		case "Swift Green":
+			return SWIFT_GREEN_COLOR;
+		case "810":
+		case "821":
+		case "855":
+		case "860":
+		case "871":
+		case "880":
+			return COMMUTER_ROUTES_COLOR;
 		}
-		return super.getRouteColor(gRoute);
+		throw new MTLog.Fatal("Unexpected route color %s!", gRoute.toStringPlus());
 	}
 
 	@NotNull
@@ -143,21 +178,8 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 	}
 
 	@Override
-	public void setTripHeadsign(@NotNull MRoute mRoute, @NotNull MTrip mTrip, @NotNull GTrip gTrip, @NotNull GSpec gtfs) {
-		mTrip.setHeadsignString(
-				cleanTripHeadsign(gTrip.getTripHeadsignOrDefault()),
-				gTrip.getDirectionIdOrDefault()
-		);
-	}
-
-	@Override
 	public boolean directionFinderEnabled() {
 		return true;
-	}
-
-	@Override
-	public boolean mergeHeadsign(@NotNull MTrip mTrip, @NotNull MTrip mTripToMerge) {
-		throw new MTLog.Fatal("Unexpected trips to merge: %s & %s!", mTrip, mTripToMerge);
 	}
 
 	@NotNull
@@ -175,6 +197,8 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 	@NotNull
 	@Override
 	public String cleanStopName(@NotNull String gStopName) {
+		gStopName = CleanUtils.toLowerCaseUpperCaseWords(getFirstLanguageNN(), gStopName, getIgnoredWords());
+		gStopName = CleanUtils.cleanBounds(gStopName);
 		gStopName = CleanUtils.SAINT.matcher(gStopName).replaceAll(CleanUtils.SAINT_REPLACEMENT);
 		gStopName = CleanUtils.CLEAN_AND.matcher(gStopName).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
 		gStopName = CleanUtils.CLEAN_AT.matcher(gStopName).replaceAll(CleanUtils.CLEAN_AT_REPLACEMENT);
@@ -183,11 +207,19 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 		return CleanUtils.cleanLabel(gStopName);
 	}
 
+	@NotNull
+	private String[] getIgnoredWords() {
+		return new String[]{
+				"NE", "NW",
+				"SE", "SW",
+		};
+	}
+
 	@Override
 	public int getStopId(@NotNull GStop gStop) {
 		//noinspection deprecation
 		String stopId = gStop.getStopId();
-		if (stopId != null && stopId.length() > 0) {
+		if (stopId.length() > 0) {
 			if (CharUtils.isDigitsOnly(stopId)) {
 				return Integer.parseInt(stopId);
 			}
