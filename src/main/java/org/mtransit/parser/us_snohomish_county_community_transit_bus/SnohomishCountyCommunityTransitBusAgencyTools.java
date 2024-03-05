@@ -72,6 +72,8 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 			return 701L;
 		case "Swift Green":
 			return 702L;
+		case "Swift Orange":
+			return 703L;
 		}
 		return super.convertRouteIdFromShortNameNotSupported(routeShortName);
 	}
@@ -219,7 +221,7 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 	public int getStopId(@NotNull GStop gStop) {
 		//noinspection deprecation
 		String stopId = gStop.getStopId();
-		if (stopId.length() > 0) {
+		if (!stopId.isEmpty()) {
 			if (CharUtils.isDigitsOnly(stopId)) {
 				return Integer.parseInt(stopId);
 			}
