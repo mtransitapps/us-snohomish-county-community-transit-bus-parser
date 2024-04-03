@@ -107,6 +107,7 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 		//noinspection deprecation
 		switch (gRoute.getRouteShortName()) {
 		case "101":
+		case "102":
 		case "105":
 		case "106":
 		case "107":
@@ -114,11 +115,13 @@ public class SnohomishCountyCommunityTransitBusAgencyTools extends DefaultAgency
 		case "111":
 		case "112":
 		case "113":
+		case "114":
 		case "115":
 		case "116":
 		case "119":
 		case "120":
 		case "130":
+		case "166":
 		case "196":
 		case "201":
 		case "202":
